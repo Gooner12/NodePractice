@@ -21,7 +21,7 @@ app.use("/api/v1/tasks", tasks);
 app.use(notFound);
 app.use(errorHandlerMiddleware); // middleware to handle errors
 
-const port = 3000;
+const port = process.env.PORT || 3000; // select the port value based on the platform or host. 3000 is used when port value is not set
 
 const start = async () => {
   try {
