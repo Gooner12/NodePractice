@@ -1,15 +1,18 @@
 const User = require('../models/User');
 const {StatusCodes} = require('http-status-codes');
 const {BadRequestError} = require('../errors');
+const bcrypt = require('bcryptjs'); // this library is used for hashing the password
 
 
 const register = async (req, res) => {
-    // This block of code will validate user details in this controller file but we can validate using mongoose as well
+  
     const {name, email, password} = req.body;
-    if(!name || !email || !password){
-        throw new BadRequestError('Please provide name, email and password');
-    }
-    const user = await User.create({...req.body}) // here we want mongoose to do all the validation
+    // setting up the hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    const tempUser = {name, email, password:hashedPassword};
+    const user = await User.create({...tempUser}) // here we want mongoose to do all the validation
     res.status(StatusCodes.CREATED).json(user);
 }
 
