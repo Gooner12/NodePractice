@@ -2,17 +2,17 @@ const Product = require("../models/product");
 const { search } = require("../routes/products");
 
 const getAllProductsStatic = async (req, res) => {
-  const products = await Product.find({})
-    .sort("name")
-    .select("name price")
-    // .limit(4)
-    // .skip(1);
+  const products = await Product.find({ price: { $gt: 30 } })
+    .sort("price")
+    .select("name price");
+  // .limit(4)
+  // .skip(1);
   res.status(200).json({ products, nbHits: products.length });
 };
 
 const getAllProducts = async (req, res) => {
   // pulling out only the properties you want to find
-  const { featured, company, name, sort, fields } = req.query;
+  const { featured, company, name, sort, fields, numericFilters } = req.query;
   const queryObject = {};
   if (featured) {
     queryObject.featured = featured === "true" ? true : false;
@@ -25,8 +25,32 @@ const getAllProducts = async (req, res) => {
   if (name) {
     queryObject.name = { $regex: name, $options: "i" }; // options: i means case insensitive
   }
+
+  if (numericFilters) {
+    // converting the comparison operators entered by the users to the one that mongoose understands
+    const operatorMap = {
+      ">": "$gt",
+      ">=": "$gte",
+      "=": "$eq",
+      "<": "$lt",
+      "<=": "$lte",
+    };
+    const regEx = /\b(<|>|>=|=|<|<=)\b/g;
+    let filters = numericFilters.replace(
+      regEx,
+      (match) => `-${operatorMap[match]}-`
+    );
+    const options = ["price", "rating"];
+    filters = filters.split(",").forEach((item) => {
+      const [field, operator, value] = item.split("-");
+      if (options.includes(field)) {
+        queryObject[field] = { [operator]: Number(value) };
+      }
+    });
+    console.log(filters);
+  }
   // sort
-  // console.log(queryObject);
+  console.log(queryObject);
   let result = Product.find(queryObject); // we remove await from this statement as we need to chain sort with find
   if (sort) {
     const sortList = sort.split(",").join(" ");
