@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require('bcryptjs'); // this library is used for hashing the password
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -22,5 +23,11 @@ const UserSchema = new mongoose.Schema({
 
   },
 });
+
+UserSchema.pre('save', async function(next) {
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+}) // using function here instead of other arrow functions set up the scoping for our function to the document
 
 module.exports = mongoose.model('User', UserSchema);
