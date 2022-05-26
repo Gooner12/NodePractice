@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcryptjs'); // this library is used for hashing the password
+const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -29,5 +30,11 @@ UserSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
   next();
 }) // using function here instead of other arrow functions set up the scoping for our function to the document
+
+
+// generate name using the instance method of schema. i.e. when an instance of user schema is created we can access methods function to create name
+UserSchema.methods.createJWT = function () {
+  return jwt.sign({userId:this._id, name: this.name}, 'jwtSecret', {expiresIn: '30d'});
+}
 
 module.exports = mongoose.model('User', UserSchema);
