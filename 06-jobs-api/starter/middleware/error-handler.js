@@ -15,7 +15,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
   // dealing with validation error message by iterating over an array of objects inside the errors object
   if (err.name === 'ValidationError') {
     // console.log(Object.values(err.errors));
-    customError.msg = Object.values(err.errors).map((item) => item.message).join(',');
+    customError.msg = Object.values(err.errors).map((item) => item.message).join(','); //Object.values is a javascript method that gives access to the values of an object's key
     customError.statusCode = 400;
   }
 
